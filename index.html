@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Papatya Falı - Müzikli</title>
+    <title>Papatya Falı - Statsgart</title>
     <style>
         :root {
             --bg: #fdf6e3;
@@ -17,24 +17,22 @@
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             height: 100vh; background-color: var(--bg);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             overflow: hidden; touch-action: manipulation;
         }
 
-        #ui-container { text-align: center; z-index: 10; }
-        h1 { color: var(--text); font-weight: 300; margin-bottom: 20px; }
+        #status-text {
+            font-size: 1.5rem; color: var(--text);
+            margin-bottom: 30px; height: 3rem; font-weight: bold;
+            text-align: center; padding: 0 20px;
+        }
 
         .btn {
             padding: 15px 25px; margin: 10px;
             border: none; border-radius: 25px;
             background: white; color: var(--text);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            cursor: pointer; transition: 0.3s;
-        }
-
-        #status-text {
-            font-size: 2rem; color: var(--text);
-            margin-bottom: 50px; height: 2.5rem; font-weight: bold;
+            cursor: pointer; font-size: 1rem;
         }
 
         #flower-container {
@@ -43,81 +41,90 @@
         }
 
         .center {
-            width: 60px; height: 60px;
+            width: 70px; height: 70px;
             background-color: var(--center);
-            border-radius: 50%; z-index: 5;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 50%; z-index: 10;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.4);
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex; align-items: center; justify-content: center;
         }
 
+        .center:active { transform: scale(0.9); }
+
         .petal {
-            position: absolute; width: 30px; height: 100px;
+            position: absolute; width: 40px; height: 115px;
             background-color: var(--petal);
             border-radius: 50% 50% 50% 50% / 80% 80% 20% 20%;
             transform-origin: bottom center;
-            bottom: 50%; left: calc(50% - 15px);
-            cursor: pointer; transition: 0.5s ease-out;
+            bottom: 50%; left: calc(50% - 20px);
+            cursor: pointer; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid rgba(0,0,0,0.02);
+            z-index: 5;
         }
 
         #result-screen { display: none; text-align: center; }
-        .restart { margin-top: 20px; color: #3498db; cursor: pointer; text-decoration: underline; }
+        .restart { margin-top: 30px; color: #3498db; cursor: pointer; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
-    <audio id="arkaPlanMuzik" loop>
+    <audio id="arkaPlanMuzik" preload="auto" loop>
         <source src="muzik.mp3" type="audio/mpeg">
     </audio>
 
-    <div id="start-screen">
-        <h1>Nasıl Başlayalım?</h1>
-        <button class="btn" onclick="startGame('seviyor')">Seviyor ile Başla</button>
-        <button class="btn" onclick="startGame('sevmiyor')">Sevmiyor ile Başla</button>
+    <div id="start-screen" style="text-align: center;">
+        <h1>🌼 Papatya Falı</h1>
+        <p style="color: #888; margin-bottom: 20px;">Hangi duyguyla başlayalım?</p>
+        <button class="btn" onclick="startGame('seviyor')">Seviyor</button>
+        <button class="btn" onclick="startGame('sevmiyor')">Sevmiyor</button>
     </div>
 
     <div id="game-screen" style="display: none; text-align: center;">
-        <div id="status-text">...</div>
+        <div id="status-text">Önce sarı merkeze dokun!<br><span style="font-size: 0.9rem; font-weight: normal;">(Müziği başlatmak için)</span></div>
         <div id="flower-container">
-            <div class="center"></div>
+            <div class="center" id="flower-center"></div>
         </div>
-        <p style="color: #999; margin-top: 20px;">Yapraklara dokun...</p>
     </div>
 
     <div id="result-screen">
-        <h1 id="final-result"></h1>
-        <div class="restart" onclick="location.reload()">Tekrar Dene</div>
+        <h1 id="final-result" style="font-size: 3rem;"></h1>
+        <div class="restart" onclick="location.reload()">🔄 Bir fal daha?</div>
     </div>
 
     <script>
         let currentStatus = "";
         let remainingPetals = 0;
+        let isMusicPlaying = false;
+        const music = document.getElementById('arkaPlanMuzik');
 
         function startGame(choice) {
-            // MÜZİĞİ BAŞLAT (Kullanıcı butona bastığı an başlar)
-            const music = document.getElementById('arkaPlanMuzik');
-            music.volume = 0.5; // Ses seviyesi %50
-            music.play().catch(e => console.log("Müzik çalınamadı:", e));
-
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
             document.getElementById('flower-container').style.display = 'flex';
             
             currentStatus = choice;
-            document.getElementById('status-text').innerText = "Hazır mısın?";
 
             // Senin 2x ve 2x+1 algoritman
-            let petalCount = 0;
-            if (choice === 'sevmiyor') {
-                const evens = [20, 22, 24, 26, 28, 30];
-                petalCount = evens[Math.floor(Math.random() * evens.length)];
-            } else {
-                const odds = [21, 23, 25, 27, 29, 31];
-                petalCount = odds[Math.floor(Math.random() * odds.length)];
-            }
+            let petalCount = (choice === 'sevmiyor') ? 
+                [20, 22, 24, 26, 28, 30][Math.floor(Math.random() * 6)] : 
+                [21, 23, 25, 27, 29, 31][Math.floor(Math.random() * 6)];
 
             remainingPetals = petalCount;
             createFlower(petalCount);
         }
+
+        // SARI MERKEZE TIKLAMA
+        document.getElementById('flower-center').addEventListener('click', () => {
+            if (!isMusicPlaying) {
+                music.play().then(() => {
+                    isMusicPlaying = true;
+                    document.getElementById('status-text').innerHTML = "Müzik başladı! <br> Hadi yaprakları kopar...";
+                }).catch(e => {
+                    alert("Aga müzik dosyası çalınamadı, GitHub'da 'muzik.mp3' yüklü mü bir bak!");
+                });
+            }
+        });
 
         function createFlower(count) {
             const container = document.getElementById('flower-container');
@@ -134,13 +141,14 @@
                     
                     petal.style.opacity = "0";
                     petal.style.pointerEvents = "none";
-                    petal.style.transform = `rotate(${angle}deg) translateY(-50px) scale(0.5)`;
+                    // Yaprak kopma animasyonu
+                    petal.style.transform = `rotate(${angle}deg) translateY(-150px) rotate(45deg) scale(0)`;
                     
                     document.getElementById('status-text').innerText = currentStatus.toUpperCase();
                     currentStatus = (currentStatus === "seviyor") ? "sevmiyor" : "seviyor";
                     
                     remainingPetals--;
-                    if (remainingPetals === 0) setTimeout(showResult, 600);
+                    if (remainingPetals === 0) setTimeout(showResult, 800);
                 });
                 container.appendChild(petal);
             }
@@ -148,9 +156,4 @@
 
         function showResult() {
             document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'block';
-            document.getElementById('final-result').innerText = "SONUÇ: SEVİYOR! ❤️";
-        }
-    </script>
-</body>
-</html>
+            document.getElementById('result-screen').
