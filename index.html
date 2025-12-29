@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papatya Falı - Minimal</title>
+    <style>
+        :root {
+            --bg: #fdf6e3;
+            --petal: #ffffff;
+            --center: #f1c40f;
+            --text: #5d5d5d;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: var(--bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #ui-container {
+            text-align: center;
+            z-index: 10;
+        }
+
+        h1 { color: var(--text); font-weight: 300; margin-bottom: 20px; }
+
+        .btn {
+            padding: 15px 25px;
+            margin: 10px;
+            border: none;
+            border-radius: 25px;
+            background: white;
+            color: var(--text);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.1); }
+
+        #status-text {
+            font-size: 2rem;
+            color: var(--text);
+            margin-bottom: 50px;
+            height: 2.5rem;
+            font-weight: bold;
+        }
+
+        /* ÇİÇEK ALANI */
+        #flower-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .center {
+            width: 60px;
+            height: 60px;
+            background-color: var(--center);
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .petal {
+            position: absolute;
+            width: 30px;
+            height: 100px;
+            background-color: var(--petal);
+            border-radius: 50% 50% 50% 50% / 80% 80% 20% 20%;
+            transform-origin: bottom center;
+            bottom: 50%;
+            left: calc(50% - 15px);
+            cursor: pointer;
+            transition: 0.5s ease-out;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .petal:active {
+            opacity: 0;
+            transform: translateY(-50px) rotate(var(--angle)) scale(0.5);
+        }
+
+        /* Sonuç Ekranı */
+        #result-screen { display: none; text-align: center; }
+        .restart { margin-top: 20px; color: #3498db; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <h1>Nasıl Başlayalım?</h1>
+        <button class="btn" onclick="startGame('seviyor')">Seviyor ile Başla</button>
+        <button class="btn" onclick="startGame('sevmiyor')">Sevmiyor ile Başla</button>
+    </div>
+
+    <div id="game-screen" style="display: none; text-align: center;">
+        <div id="status-text">...</div>
+        <div id="flower-container">
+            <div class="center"></div>
+        </div>
+        <p style="color: #999; margin-top: 20px;">Yapraklara dokun...</p>
+    </div>
+
+    <div id="result-screen">
+        <h1 id="final-result"></h1>
+        <div class="restart" onclick="location.reload()">Tekrar Dene</div>
+    </div>
+
+    <script>
+        let currentStatus = "";
+        let petalCount = 0;
+        let remainingPetals = 0;
+
+        function startGame(choice) {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('flower-container').style.display = 'flex';
+            
+            currentStatus = choice;
+            document.getElementById('status-text').innerText = "Hazır mısın?";
+
+            // Senin algoritman
+            if (choice === 'sevmiyor') {
+                const evens = [20, 22, 24, 26, 28, 30];
+                petalCount = evens[Math.floor(Math.random() * evens.length)];
+            } else {
+                const odds = [21, 23, 25, 27, 29, 31];
+                petalCount = odds[Math.floor(Math.random() * odds.length)];
+            }
+
+            remainingPetals = petalCount;
+            createFlower();
+        }
+
+        function createFlower() {
+            const container = document.getElementById('flower-container');
+            const angleStep = 360 / petalCount;
+
+            for (let i = 0; i < petalCount; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+                const angle = i * angleStep;
+                petal.style.transform = `rotate(${angle}deg)`;
+                petal.style.setProperty('--angle', `${angle}deg`);
+                
+                petal.addEventListener('click', () => {
+                    if (petal.style.opacity === "0") return;
+                    
+                    petal.style.opacity = "0";
+                    petal.style.pointerEvents = "none";
+                    
+                    // Yazı değiştirme mantığı
+                    document.getElementById('status-text').innerText = currentStatus.toUpperCase();
+                    currentStatus = (currentStatus === "seviyor") ? "sevmiyor" : "seviyor";
+                    
+                    remainingPetals--;
+                    
+                    if (remainingPetals === 0) {
+                        setTimeout(showResult, 600);
+                    }
+                });
+
+                container.appendChild(petal);
+            }
+        }
+
+        function showResult() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            // Algoritmana göre sonuç hep "SEVİYOR" çıkacak şekilde ayarlandı
+            document.getElementById('final-result').innerText = "SONUÇ: SEVİYOR! ❤️";
+        }
+    </script>
+</body>
+</html>
