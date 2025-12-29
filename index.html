@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Papatya Falı - Minimal</title>
+    <title>Papatya Falı - Müzikli</title>
     <style>
         :root {
             --bg: #fdf6e3;
@@ -13,92 +13,61 @@
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: var(--bg);
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 100vh; background-color: var(--bg);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
-            touch-action: manipulation;
+            overflow: hidden; touch-action: manipulation;
         }
 
-        #ui-container {
-            text-align: center;
-            z-index: 10;
-        }
-
+        #ui-container { text-align: center; z-index: 10; }
         h1 { color: var(--text); font-weight: 300; margin-bottom: 20px; }
 
         .btn {
-            padding: 15px 25px;
-            margin: 10px;
-            border: none;
-            border-radius: 25px;
-            background: white;
-            color: var(--text);
+            padding: 15px 25px; margin: 10px;
+            border: none; border-radius: 25px;
+            background: white; color: var(--text);
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            cursor: pointer;
-            transition: 0.3s;
+            cursor: pointer; transition: 0.3s;
         }
-
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.1); }
 
         #status-text {
-            font-size: 2rem;
-            color: var(--text);
-            margin-bottom: 50px;
-            height: 2.5rem;
-            font-weight: bold;
+            font-size: 2rem; color: var(--text);
+            margin-bottom: 50px; height: 2.5rem; font-weight: bold;
         }
 
-        /* ÇİÇEK ALANI */
         #flower-container {
-            position: relative;
-            width: 300px;
-            height: 300px;
-            display: none;
-            justify-content: center;
-            align-items: center;
+            position: relative; width: 300px; height: 300px;
+            display: none; justify-content: center; align-items: center;
         }
 
         .center {
-            width: 60px;
-            height: 60px;
+            width: 60px; height: 60px;
             background-color: var(--center);
-            border-radius: 50%;
-            z-index: 5;
+            border-radius: 50%; z-index: 5;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
 
         .petal {
-            position: absolute;
-            width: 30px;
-            height: 100px;
+            position: absolute; width: 30px; height: 100px;
             background-color: var(--petal);
             border-radius: 50% 50% 50% 50% / 80% 80% 20% 20%;
             transform-origin: bottom center;
-            bottom: 50%;
-            left: calc(50% - 15px);
-            cursor: pointer;
-            transition: 0.5s ease-out;
+            bottom: 50%; left: calc(50% - 15px);
+            cursor: pointer; transition: 0.5s ease-out;
             border: 1px solid rgba(0,0,0,0.02);
         }
 
-        .petal:active {
-            opacity: 0;
-            transform: translateY(-50px) rotate(var(--angle)) scale(0.5);
-        }
-
-        /* Sonuç Ekranı */
         #result-screen { display: none; text-align: center; }
         .restart { margin-top: 20px; color: #3498db; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
+
+    <audio id="arkaPlanMuzik" loop>
+        <source src="muzik.mp3" type="audio/mpeg">
+    </audio>
 
     <div id="start-screen">
         <h1>Nasıl Başlayalım?</h1>
@@ -121,10 +90,14 @@
 
     <script>
         let currentStatus = "";
-        let petalCount = 0;
         let remainingPetals = 0;
 
         function startGame(choice) {
+            // MÜZİĞİ BAŞLAT (Kullanıcı butona bastığı an başlar)
+            const music = document.getElementById('arkaPlanMuzik');
+            music.volume = 0.5; // Ses seviyesi %50
+            music.play().catch(e => console.log("Müzik çalınamadı:", e));
+
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
             document.getElementById('flower-container').style.display = 'flex';
@@ -132,7 +105,8 @@
             currentStatus = choice;
             document.getElementById('status-text').innerText = "Hazır mısın?";
 
-            // Senin algoritman
+            // Senin 2x ve 2x+1 algoritman
+            let petalCount = 0;
             if (choice === 'sevmiyor') {
                 const evens = [20, 22, 24, 26, 28, 30];
                 petalCount = evens[Math.floor(Math.random() * evens.length)];
@@ -142,37 +116,32 @@
             }
 
             remainingPetals = petalCount;
-            createFlower();
+            createFlower(petalCount);
         }
 
-        function createFlower() {
+        function createFlower(count) {
             const container = document.getElementById('flower-container');
-            const angleStep = 360 / petalCount;
+            const angleStep = 360 / count;
 
-            for (let i = 0; i < petalCount; i++) {
+            for (let i = 0; i < count; i++) {
                 const petal = document.createElement('div');
                 petal.className = 'petal';
                 const angle = i * angleStep;
                 petal.style.transform = `rotate(${angle}deg)`;
-                petal.style.setProperty('--angle', `${angle}deg`);
                 
                 petal.addEventListener('click', () => {
                     if (petal.style.opacity === "0") return;
                     
                     petal.style.opacity = "0";
                     petal.style.pointerEvents = "none";
+                    petal.style.transform = `rotate(${angle}deg) translateY(-50px) scale(0.5)`;
                     
-                    // Yazı değiştirme mantığı
                     document.getElementById('status-text').innerText = currentStatus.toUpperCase();
                     currentStatus = (currentStatus === "seviyor") ? "sevmiyor" : "seviyor";
                     
                     remainingPetals--;
-                    
-                    if (remainingPetals === 0) {
-                        setTimeout(showResult, 600);
-                    }
+                    if (remainingPetals === 0) setTimeout(showResult, 600);
                 });
-
                 container.appendChild(petal);
             }
         }
@@ -180,7 +149,6 @@
         function showResult() {
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
-            // Algoritmana göre sonuç hep "SEVİYOR" çıkacak şekilde ayarlandı
             document.getElementById('final-result').innerText = "SONUÇ: SEVİYOR! ❤️";
         }
     </script>
